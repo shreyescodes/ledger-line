@@ -37,12 +37,10 @@ class LedgerServiceIntegrationTest extends ActuatorContractTest {
 
     @Test
     void databaseDefaultsToUtc() {
-        List<String> settings = jdbc.queryForList(
-                """
+        List<String> settings = jdbc.queryForList("""
                 select unnest(setconfig) from pg_db_role_setting
                 where setdatabase = (select oid from pg_database where datname = current_database())
-                """,
-                String.class);
+                """, String.class);
 
         assertThat(settings).anySatisfy(setting -> assertThat(setting).isEqualToIgnoringCase("timezone=UTC"));
     }
