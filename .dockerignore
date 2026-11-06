@@ -1,0 +1,4 @@
+# Images only need the built jars and the health check script.
+*
+!infra/docker/healthcheck.sh
+!services/*/build/libs/*.jar

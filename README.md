@@ -4,7 +4,8 @@ A double-entry payments ledger and payment-orchestration platform, built to be
 provably correct under concurrency, retries and failures. Money, banks and the
 PSP are simulated; this is not real UPI/NPCI.
 
-**Status:** Stage 0, domain foundations (`v0.0`). No services yet.
+**Status:** Stage 1, the skeleton (`v0.1`): five Spring Boot services, a shared
+build, the local stack and CI. No business logic yet.
 
 ## Start here
 
@@ -13,29 +14,55 @@ PSP are simulated; this is not real UPI/NPCI.
   payment saga, reconciliation, invariants and worked examples.
 - [docs/adr/](docs/adr/README.md): architecture decision records.
 
-## Verify Stage 0
+## Run it locally
 
-Needs Java 21 or newer. There is no build step.
+You need Docker (with Compose v2), Java 21 or newer to run Gradle (Gradle
+downloads JDK 25 for the build itself), and `make`.
 
 ```sh
-java tools/domain-check/DomainCheck.java DOMAIN.md
-java tools/domain-check/DomainCheck.java tools/domain-check/testdata/broken.md
+make up       # build the jars, start everything, wait until all containers are healthy
+make smoke    # check the stack end to end
+make down     # stop (make clean also deletes the database volume)
 ```
 
-- The first command replays every worked example in `DOMAIN.md`. It must end
-  with `RESULT: OK`.
-- The second runs the checker on a file with 11 planted mistakes. It passes
-  only if the checker catches all of them.
+| What | Where |
+|---|---|
+| ledger-service, payment-service, mock-psp, reconciliation-service, notification-service | http://localhost:8081 to 8085 (`/actuator/health/readiness`, `/actuator/prometheus`) |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 (credentials in `infra/compose/.env`) |
+| Keycloak | http://localhost:8180 (realm `ledgerline`) |
+| Postgres | `localhost:5432`, one database per service |
+| Kafka | `localhost:19092` |
+| Redis | `localhost:6379` |
 
-Recorded run: [docs/results/stage-0-domain-check.md](docs/results/stage-0-domain-check.md).
+`make up` copies `infra/compose/.env.example` to `infra/compose/.env` on first
+run. Those are throwaway local credentials; real secrets never go in the repo.
+
+## Build and test
+
+```sh
+./gradlew build    # formatting, static analysis, unit, architecture and integration tests
+make domain-check  # replay the DOMAIN.md worked examples
+```
+
+- Integration tests run against real Postgres through Testcontainers, so they
+  need Docker. Without Docker they're skipped locally; in CI they always run.
+- Formatting: `./gradlew spotlessApply`.
+- After changing dependencies, refresh the lockfiles with `make lock`.
+
+Windows note: if Gradle can't download from GitHub (connection resets over
+IPv6), add `systemProp.java.net.preferIPv4Stack=true` and
+`-Djava.net.preferIPv4Stack=true` (in `org.gradle.jvmargs`) to your user-level
+`~/.gradle/gradle.properties`. `make` comes with Git for Windows' SDK, MSYS2 or
+`choco install make`.
 
 ## Stages
 
 | Stage | Scope | Status |
 |---|---|---|
 | 0 | Domain foundations: DOMAIN.md, first ADRs | done (`v0.0`) |
-| 1 | Skeleton: monorepo, Gradle, Compose, Flyway, Testcontainers, ArchUnit, CI | next |
-| 2 | Ledger core: Money, schema, atomic postings, three overdraft strategies benchmarked | |
+| 1 | Skeleton: monorepo, Gradle, Compose, Flyway, Testcontainers, ArchUnit, CI | done (`v0.1`) |
+| 2 | Ledger core: Money, schema, atomic postings, three overdraft strategies benchmarked | next |
 | 3 | Idempotency, holds, state machine | |
 | 4 | Events: transactional outbox, Kafka, inbox, DLQ | |
 | 5 | Payments, mock PSP, saga, Resilience4j, webhooks | |
@@ -52,20 +79,20 @@ Recorded run: [docs/results/stage-0-domain-check.md](docs/results/stage-0-domain
 ## Measured results
 
 None yet. Every performance or reliability number in this repository will link
-to a saved run under `docs/results/`.
+to a saved run under `docs/results/`. Acceptance evidence so far:
+
+- Stage 0: [domain-check run](docs/results/stage-0-domain-check.md)
+- Stage 1: [CI run](docs/results/stage-1-ci.md)
 
 ## Repository layout
 
-The planned layout from the brief. Folders appear as the stages create them.
-
 ```text
-services/    ledger-service, payment-service, mock-psp,
-             reconciliation-service, notification-service
-libs/common  Money, IDs, event envelope, idempotency utilities
-web/         ops-dashboard
-infra/       compose, terraform
-load-tests/  k6 scenarios
-chaos/       fault-injection experiments
-docs/        adr, runbooks, results, postmortems, diagrams
-tools/       domain-check (Stage 0)
+build-logic/   shared Gradle convention plugins
+libs/          common (plain Java, shared), test-support (Testcontainers, ArchUnit rules)
+services/      ledger-service, payment-service, mock-psp,
+               reconciliation-service, notification-service
+infra/         compose (local stack), docker (service image)
+docs/          adr, results (later: runbooks, postmortems, diagrams)
+tools/         domain-check (Stage 0)
+web/, load-tests/, chaos/, infra/terraform   arrive in later stages
 ```

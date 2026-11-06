@@ -22,8 +22,8 @@ reconstructing the reasoning from commit history.
 - Status moves `Proposed` → `Accepted`. An accepted ADR is not rewritten. If
   the decision changes, a new ADR supersedes it, and the old one's status
   becomes `Superseded by ADR-NNNN`.
-- ADRs written by the implementer start as `Proposed` and become `Accepted`
-  when the project owner signs off at the end of the stage.
+- New ADRs start as `Proposed` and become `Accepted`
+  when the project owner merges the stage PR.
 - [`README.md`](README.md) in this folder indexes every ADR.
 - An ADR may cite numbers only from saved runs under `docs/results/`.
 

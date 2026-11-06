@@ -1,6 +1,6 @@
 # ADR-0002: Represent money as integer minor units
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 0
 

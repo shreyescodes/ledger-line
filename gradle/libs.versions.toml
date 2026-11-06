@@ -1,0 +1,21 @@
+# One place for versions. Anything Spring Boot manages (Flyway, Testcontainers,
+# JUnit, AssertJ, Postgres driver, Kafka, Micrometer...) comes from its BOM, so
+# it isn't repeated here. See ADR-0007.
+# Checked against Maven Central / the Gradle plugin portal on 2026-11-06.
+
+[versions]
+java = "25"
+spring-boot = "4.1.2"
+archunit = "1.5.1"
+errorprone = "2.52.0"
+palantir-java-format = "2.103.0"
+
+[libraries]
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+
+# Gradle plugins, used as dependencies of build-logic
+spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spotless-gradle-plugin = { module = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin", version = "8.11.0" }
+errorprone-gradle-plugin = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version = "5.2.0" }

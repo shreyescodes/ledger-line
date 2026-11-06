@@ -1,6 +1,6 @@
 # ADR-0006: Treat PSP timeouts as unknown outcomes
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 0
 
