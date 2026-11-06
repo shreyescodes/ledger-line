@@ -1,0 +1,18 @@
+# Store text with LF in the repo and check it out with LF everywhere,
+# so shell scripts, Dockerfiles and Gradle wrappers work on Linux CI and in containers.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files: never touch line endings.
+*.jar   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
