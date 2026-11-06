@@ -1,6 +1,6 @@
 # ADR-0004: Model holds as reservations, not ledger entries
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 0
 

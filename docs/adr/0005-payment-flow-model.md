@@ -1,6 +1,6 @@
 # ADR-0005: Route every customer and merchant payment through the PSP
 
-- **Status:** Proposed — **the owner should confirm this one; it shapes Stages 5–10**
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 0
 

@@ -1,6 +1,6 @@
 # ADR-0003: Chart of accounts and debit/credit sign convention
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 0
 
