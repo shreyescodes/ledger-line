@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Third-party actions are pinned to commit SHAs (ADR-0010); the comment is the release tag.
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Replay DOMAIN.md worked examples
+        run: make domain-check
+
+      - name: Dependency lockfiles are up to date
+        run: |
+          ./gradlew resolveAndLockAll --write-locks
+          git add --intent-to-add .
+          if ! git diff --exit-code --stat -- '*gradle.lockfile'; then
+            echo "::error::gradle.lockfile files are stale. Run 'make lock' and commit them (fresh copies are in the 'lockfiles' artifact)."
+            exit 1
+          fi
+
+      - name: Upload fresh lockfiles
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lockfiles
+          path: "**/gradle.lockfile"
+          if-no-files-found: ignore
+
+      - name: Format check, static analysis and all tests (Testcontainers included)
+        run: ./gradlew build
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          if-no-files-found: ignore
+
+      - name: Upload service jars
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: service-jars
+          path: services/*/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 3
+
+  dependency-scan:
+    name: Dependency, secret and config scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Reads the exact dependency versions from the gradle.lockfile files.
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  image-scan:
+    name: Image scan (${{ matrix.service }})
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [ledger-service, payment-service, mock-psp, reconciliation-service, notification-service]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: service-jars
+          path: services
+
+      - name: Build image
+        run: >
+          docker build -f infra/docker/service.Dockerfile
+          --build-arg SERVICE=${{ matrix.service }}
+          -t ledgerline/${{ matrix.service }}:ci .
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ledgerline/${{ matrix.service }}:ci
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  compose-smoke:
+    name: Local stack smoke test
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: service-jars
+          path: services
+
+      - name: Start the stack and wait until every container is healthy
+        run: |
+          cp infra/compose/.env.example infra/compose/.env
+          docker compose -f infra/compose/compose.yaml up -d --build --wait --wait-timeout 300
+
+      - name: Smoke test
+        run: infra/compose/smoke-test.sh
+
+      - name: Container status and logs
+        if: failure()
+        run: |
+          docker compose -f infra/compose/compose.yaml ps
+          docker compose -f infra/compose/compose.yaml logs --no-color
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose -f infra/compose/compose.yaml down -v
