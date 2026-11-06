@@ -44,8 +44,7 @@ class LedgerlineArchitectureRulesTest {
     void layersOnlyPointInwards() {
         assertViolated(
                 LedgerlineArchitectureRules.LAYERS_POINT_INWARDS, DomainCallingAnAdapter.class, FixtureAdapter.class);
-        assertHolds(
-                LedgerlineArchitectureRules.LAYERS_POINT_INWARDS, UsesTheCommonLib.class, MinorUnitsAmount.class);
+        assertHolds(LedgerlineArchitectureRules.LAYERS_POINT_INWARDS, UsesTheCommonLib.class, MinorUnitsAmount.class);
     }
 
     @Test
