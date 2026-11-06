@@ -34,7 +34,8 @@ Rules:
    of `aquasecurity/trivy-action` (CVE-2026-33634), and every workflow that
    referenced those tags ran it. We pin trivy-action v0.36.0, released after
    the cleanup. It installs the Trivy binary through `setup-trivy`, itself
-   pinned by SHA to v0.2.6. The binary version (v0.70.0) is also set
+   pinned by SHA to v0.2.6. The Trivy binary version (v0.76.2, the latest release on
+   2026-11-06) is also set
    explicitly in our workflow.
 3. **Least-privilege token:** `permissions: contents: read`.
 4. **Scan threshold:** fail on HIGH and CRITICAL findings that have a fix.
