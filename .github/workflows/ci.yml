@@ -36,7 +36,7 @@ jobs:
         run: |
           ./gradlew resolveAndLockAll --write-locks
           git add --intent-to-add .
-          if ! git diff --exit-code --stat -- '*gradle.lockfile'; then
+          if ! git diff --exit-code -- '*gradle.lockfile'; then
             echo "::error::gradle.lockfile files are stale. Run 'make lock' and commit them (fresh copies are in the 'lockfiles' artifact)."
             exit 1
           fi
@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lockfiles
-          path: "**/gradle.lockfile"
+          path: "**/*gradle.lockfile"
           if-no-files-found: ignore
 
       - name: Format check, static analysis and all tests (Testcontainers included)
