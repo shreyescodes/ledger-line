@@ -29,9 +29,13 @@ Rules:
 1. **Docker tests can't be skipped in CI.** Tests marked `@RequiresDocker` skip
    on a machine without Docker, but run (and fail loudly) when `CI` is set.
 2. **Third-party actions are pinned to full commit SHAs**, with the release tag
-   in a comment. Tags can be moved; commits can't. This matters for scanners
-   in particular: Trivy's GitHub Actions were themselves a supply-chain
-   target in 2026.
+   in a comment. Tags can be moved; commits can't. This is not theoretical.
+   In March 2026, attackers force-pushed malicious code to 76 of the 77 tags
+   of `aquasecurity/trivy-action` (CVE-2026-33634), and every workflow that
+   referenced those tags ran it. We pin trivy-action v0.36.0, released after
+   the cleanup. It installs the Trivy binary through `setup-trivy`, itself
+   pinned by SHA to v0.2.6. The binary version (v0.70.0) is also set
+   explicitly in our workflow.
 3. **Least-privilege token:** `permissions: contents: read`.
 4. **Scan threshold:** fail on HIGH and CRITICAL findings that have a fix.
    Unfixed findings are reported but don't block, because nothing we do can
