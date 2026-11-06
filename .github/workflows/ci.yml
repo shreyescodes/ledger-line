@@ -50,7 +50,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Format check, static analysis and all tests (Testcontainers included)
-        run: ./gradlew build
+        run: ./gradlew build --continue
 
       - name: Upload test reports
         if: always()
