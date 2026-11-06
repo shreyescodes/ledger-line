@@ -15,6 +15,9 @@ management:
       probes:
         enabled: true
       show-components: always
+      group:
+        readiness:
+          include: readinessState
   metrics:
     tags:
       application: ${spring.application.name}
