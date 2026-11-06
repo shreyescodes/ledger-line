@@ -14,8 +14,11 @@
  *     | Account | Ledger | Held | Available |                balance checks against the replay
  *
  * Postings and hold events are "steps". Each needs a caption line just above it that
- * starts with its id, e.g. "**E2.2** ... captures H1". A caption that says
- * "captures H<n>" turns the posting into the capture of that hold.
+ * starts with its id, e.g. "**E2.2** ... captures H1". The caption is the whole paragraph, even
+ * when it wraps over several lines. A caption that says "captures H<n>" turns the posting into
+ * the capture of that hold.
+ *
+ * Fenced code blocks (``` or ~~~) are skipped, so diagrams and file samples are never read as steps.
  *
  * A variant is wrapped in
  *     <!-- branch NAME from STEP --> ... <!-- end branch -->
@@ -156,18 +159,34 @@ public class DomainCheck {
     void run(List<String> lines) {
         String captionId = null;
         String captionText = "";
+        boolean inCodeBlock = false;
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i).trim();
             int lineNo = i + 1;
+            if (line.startsWith("```") || line.startsWith("~~~")) {
+                inCodeBlock = !inCodeBlock; // diagrams and file samples are not steps
+                i++;
+                continue;
+            }
+            if (inCodeBlock) {
+                i++;
+                continue;
+            }
             Matcher m;
             if ((m = CAPTION.matcher(line)).matches()) {
                 if (captionId != null) {
                     problem(lineNo, "caption " + captionId + " has no posting or hold table under it");
                 }
                 captionId = m.group(1);
-                captionText = m.group(2);
+                StringBuilder text = new StringBuilder(m.group(2));
                 i++;
+                // A caption is a whole paragraph: Markdown wraps it over several lines.
+                while (i < lines.size() && isParagraphText(lines.get(i).trim())) {
+                    text.append(' ').append(lines.get(i).trim());
+                    i++;
+                }
+                captionText = text.toString();
             } else if ((m = BRANCH_START.matcher(line)).matches()) {
                 startBranch(m.group(1), m.group(2), lineNo);
                 i++;
@@ -210,6 +229,11 @@ public class DomainCheck {
         if (branch != null) {
             problem(lines.size(), "variant '" + branch + "' is never closed with <!-- end branch -->");
         }
+    }
+
+    static boolean isParagraphText(String line) {
+        return !line.isEmpty() && !line.startsWith("|") && !line.startsWith("<!--")
+                && !line.startsWith("```") && !line.startsWith("~~~") && !line.startsWith("#");
     }
 
     static Table parseTable(List<String> block, List<Integer> lineNumbers) {

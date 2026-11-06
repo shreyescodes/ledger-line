@@ -69,7 +69,8 @@ Mistake 1: a LIABILITY type can't be debit-normal.
 | wallet:alice | INR | 5000 | |
 | wallet:bob | INR | | 5000 |
 
-**E1.8** A correct capture: captures H2.
+**E1.8** A correct capture. Its caption wraps over two lines on purpose, so
+the checker must read the whole paragraph: this posting captures H2.
 
 | Account | Currency | Debit | Credit |
 |---|---|---:|---:|
