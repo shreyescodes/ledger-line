@@ -1,0 +1,8 @@
+{
+  "realm": "ledgerline",
+  "displayName": "Ledgerline (local)",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": false
+}
