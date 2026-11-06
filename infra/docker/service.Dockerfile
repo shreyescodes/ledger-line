@@ -4,7 +4,12 @@ FROM eclipse-temurin:25.0.5_8-jre-noble
 
 ARG SERVICE
 
-RUN groupadd --system app && useradd --system --gid app --no-create-home app
+# Pick up OS security fixes that landed after the base image was built.
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app \
+    && useradd --system --gid app --no-create-home app
 
 WORKDIR /app
 COPY --chmod=0755 infra/docker/healthcheck.sh /app/healthcheck.sh
