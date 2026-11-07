@@ -1,6 +1,6 @@
 # ADR-0010: CI pipeline and supply-chain checks
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 1
 
