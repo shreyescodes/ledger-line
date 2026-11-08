@@ -12,6 +12,8 @@ public interface PostingStrategy {
     PostingStrategyName name();
 
     /**
+     * Posts the draft, or refuses it and writes nothing.
+     *
      * @throws dev.ledgerline.ledger.domain.LedgerException when the ledger refuses the posting
      * @throws PostingContentionException when retries ran out under contention
      */
