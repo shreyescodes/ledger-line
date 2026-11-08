@@ -51,9 +51,9 @@ class OrderedLocksPostingStrategy implements PostingStrategy {
         return retry.run(() -> transactions.execute(status -> {
             Map<AccountId, AccountBalance> locked = sql.balances(draft, true);
             PostingPlan plan = PostingRules.plan(draft, locked);
-            PostedTransaction posted = sql.insert(draft, plan, identity);
+            // Balances first: whoever moves a balance row owns the next sequence numbers on it.
             sql.updateBalances(plan, identity);
-            return posted;
+            return sql.insert(draft, plan, identity);
         }));
     }
 }

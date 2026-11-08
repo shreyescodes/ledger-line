@@ -51,8 +51,8 @@ class OptimisticPostingStrategy implements PostingStrategy {
         return retry.run(() -> transactions.execute(status -> {
             Map<AccountId, AccountBalance> read = sql.balances(draft, false);
             PostingPlan plan = PostingRules.plan(draft, read);
-            PostedTransaction posted = sql.insert(draft, plan, identity);
-            // Updated in account-id order, like the lock strategy, so writers can't deadlock.
+            // Balances first: a lost race shows up here as a version mismatch (and is retried),
+            // before any entry claims a sequence number someone else already holds.
             for (AccountBalance balance : plan.newBalances().values()) {
                 long expected = read.get(balance.accountId()).version();
                 if (!sql.updateBalanceIfUnchanged(balance, expected, identity)) {
@@ -60,7 +60,7 @@ class OptimisticPostingStrategy implements PostingStrategy {
                             "balance of " + balance.accountId() + " changed after it was read");
                 }
             }
-            return posted;
+            return sql.insert(draft, plan, identity);
         }));
     }
 }

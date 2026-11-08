@@ -50,9 +50,9 @@ class SerializablePostingStrategy implements PostingStrategy {
         return retry.run(() -> transactions.execute(status -> {
             Map<AccountId, AccountBalance> read = sql.balances(draft, false);
             PostingPlan plan = PostingRules.plan(draft, read);
-            PostedTransaction posted = sql.insert(draft, plan, identity);
+            // Balances first: whoever moves a balance row owns the next sequence numbers on it.
             sql.updateBalances(plan, identity);
-            return posted;
+            return sql.insert(draft, plan, identity);
         }));
     }
 }
