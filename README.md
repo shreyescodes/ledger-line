@@ -100,8 +100,17 @@ IPv6), add `systemProp.java.net.preferIPv4Stack=true` and
 
 ## Measured results
 
-None yet. Every performance or reliability number in this repository will link
-to a saved run under `docs/results/`. Acceptance evidence so far:
+Every number here links to a saved run under `docs/results/`, with the machine
+it ran on.
+
+| What | Result | Run |
+|---|---|---|
+| Posting throughput, 10 hot accounts, ordered row locks (16 workers, 4-vCPU CI runner, Postgres on the same machine) | 1351 transfers/s, p99 80.67 ms | [benchmark](docs/results/stage-2-posting-strategy-benchmark.md) |
+| Same, optimistic versions / serializable isolation | 888 / 699 transfers/s | [benchmark](docs/results/stage-2-posting-strategy-benchmark.md) |
+| 1,000 parallel transfers across 10 accounts, each strategy | 0 invariant violations | [CI run](docs/results/stage-2-ci.md) |
+
+The benchmark ranks the strategies against each other ([ADR-0014](docs/adr/0014-ordered-row-locks-prevent-overdrafts.md));
+it is not a production capacity figure. Acceptance evidence so far:
 
 - Stage 0: [domain-check run](docs/results/stage-0-domain-check.md)
 - Stage 1: [CI run](docs/results/stage-1-ci.md)
