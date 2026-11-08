@@ -20,6 +20,8 @@ import java.util.stream.IntStream;
 final class PostingScenarios {
 
     private static final String[] CURRENCIES = {"INR", "USD"};
+    private static final List<PostingStrategyName> STRATEGIES = List.of(PostingStrategyName.values());
+    private static final List<AccountType> TYPES = List.of(AccountType.values());
 
     private PostingScenarios() {}
 
@@ -51,12 +53,11 @@ final class PostingScenarios {
     }
 
     static Scenario generate(SplittableRandom random) {
-        PostingStrategyName strategy =
-                PostingStrategyName.values()[random.nextInt(PostingStrategyName.values().length)];
+        PostingStrategyName strategy = STRATEGIES.get(random.nextInt(STRATEGIES.size()));
         List<AccountSpec> accounts = new ArrayList<>();
         int accountCount = random.nextInt(3, 9);
         for (int i = 0; i < accountCount; i++) {
-            AccountType type = AccountType.values()[random.nextInt(AccountType.values().length)];
+            AccountType type = TYPES.get(random.nextInt(TYPES.size()));
             String currency = random.nextInt(5) == 0 ? CURRENCIES[1] : CURRENCIES[0];
             accounts.add(new AccountSpec(type, currency));
         }
@@ -99,7 +100,6 @@ final class PostingScenarios {
         if (sameCurrency.size() >= 3 && random.nextInt(3) == 0) {
             // A three-legged posting, like a payment split between merchant and fee revenue.
             int third = pickOther(random, sameCurrency, first, second);
-            long part = random.nextLong(1, amount + 1);
             long extra = random.nextLong(1, 5_001);
             return Optional.of(new Op(List.of(
                     new Leg(first, side, amount + extra, currency),
