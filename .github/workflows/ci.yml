@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -152,3 +153,42 @@ jobs:
       - name: Stop the stack
         if: always()
         run: docker compose -f infra/compose/compose.yaml down -v
+
+  # Opt-in: runs on pull requests labelled "benchmark", or by hand from the Actions tab.
+  # Numbers only count once the uploaded output is saved under docs/results (see the brief).
+  benchmark:
+    name: Posting strategy benchmark
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'benchmark')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Describe the machine
+        run: |
+          mkdir -p services/ledger-service/build/benchmark
+          {
+            echo "runner: $RUNNER_NAME ($ImageOS $ImageVersion)"
+            echo "commit: $GITHUB_SHA"
+            lscpu | grep -E '^(Model name|CPU\(s\)|Thread\(s\) per core|Core\(s\) per socket)'
+            free -m | head -2
+            echo "docker: $(docker version --format '{{.Server.Version}}')"
+          } | tee services/ledger-service/build/benchmark/machine.txt
+
+      - name: Run the benchmark
+        run: ./gradlew :services:ledger-service:benchmark
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: posting-strategy-benchmark
+          path: services/ledger-service/build/benchmark/
