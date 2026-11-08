@@ -123,8 +123,10 @@ services:
     image: ledgerline/ledger-service:local
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ledger
-      SPRING_DATASOURCE_USERNAME: ledger_service
+      SPRING_DATASOURCE_USERNAME: ledger_app
       SPRING_DATASOURCE_PASSWORD: ${SERVICE_DB_PASSWORD:?copy .env.example to .env}
+      SPRING_FLYWAY_USER: ledger_service
+      SPRING_FLYWAY_PASSWORD: ${SERVICE_DB_PASSWORD:?copy .env.example to .env}
     ports:
       - "127.0.0.1:8081:8080"
     depends_on:
