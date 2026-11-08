@@ -3,20 +3,15 @@ package dev.ledgerline.ledger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.ledgerline.testsupport.actuator.ActuatorContractTest;
-import dev.ledgerline.testsupport.containers.PostgresContainerConfiguration;
-import dev.ledgerline.testsupport.docker.RequiresDocker;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Starts the service against a real Postgres in Docker, then checks Flyway and the endpoints. */
-@RequiresDocker
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(PostgresContainerConfiguration.class)
+@LedgerIntegrationTest
 class LedgerServiceIntegrationTest extends ActuatorContractTest {
 
     @Autowired
@@ -28,11 +23,11 @@ class LedgerServiceIntegrationTest extends ActuatorContractTest {
     }
 
     @Test
-    void flywayAppliedTheBaselineMigration() {
-        Integer applied = jdbc.queryForObject(
-                "select count(*) from flyway_schema_history where version = '1' and success", Integer.class);
+    void flywayAppliedEveryMigration() {
+        List<String> applied = jdbc.queryForList(
+                "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class);
 
-        assertThat(applied).isEqualTo(1);
+        assertThat(applied).containsExactly("1", "2", "3", "4");
     }
 
     @Test
@@ -43,5 +38,19 @@ class LedgerServiceIntegrationTest extends ActuatorContractTest {
                 """, String.class);
 
         assertThat(settings).anySatisfy(setting -> assertThat(setting).isEqualToIgnoringCase("timezone=UTC"));
+    }
+
+    @Test
+    void theServiceConnectsAsTheLeastPrivilegeRole() {
+        assertThat(jdbc.queryForObject("SELECT current_user", String.class)).isEqualTo("app_user");
+    }
+
+    @Test
+    void invariantMetricsAreExported() throws Exception {
+        HttpResponse<String> response = get("/actuator/prometheus");
+
+        assertThat(response.body())
+                .contains("ledger_invariant_violations")
+                .contains("ledger_invariant_last_verified_seconds");
     }
 }
