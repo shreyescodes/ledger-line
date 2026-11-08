@@ -1,13 +1,31 @@
 spring:
   application:
     name: ledger-service
+  # The service runs as a least-privilege role that can't UPDATE or DELETE ledger rows (I3).
   datasource:
     url: jdbc:postgresql://localhost:5432/ledger
-    username: ledger_service
-    password: ${LEDGER_DB_PASSWORD:}
+    username: ledger_app
+    password: ${LEDGER_APP_DB_PASSWORD:}
+  # Migrations run as the database owner, which then grants the app role what it needs.
+  flyway:
+    user: ledger_service
+    password: ${LEDGER_MIGRATION_DB_PASSWORD:}
+    placeholders:
+      app_role: ledger_app
+  mvc:
+    problemdetails:
+      enabled: true
 
 server:
   port: 8081
+
+ledger:
+  posting:
+    strategy: ORDERED_LOCKS
+    max-attempts: 10
+  verifier:
+    enabled: true
+    interval: PT1M
 
 management:
   endpoints:
