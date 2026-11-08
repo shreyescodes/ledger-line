@@ -51,7 +51,8 @@ class PostingRulesPropertyTest {
                         AccountId id = new AccountId(UUID.randomUUID());
                         ids.add(id);
                         balances.put(
-                                id, new AccountBalance(id, tenant, spec.type(), CurrencyCode.of(spec.currency()), 0, 0));
+                                id,
+                                new AccountBalance(id, tenant, spec.type(), CurrencyCode.of(spec.currency()), 0, 0));
                     }
                     Model model = new Model(scenario.accounts());
                     List<EntryDraft> accepted = new ArrayList<>();
@@ -87,7 +88,8 @@ class PostingRulesPropertyTest {
                             .allSatisfy(b -> assertThat(b.ledger().amount()).isNotNegative());
                     // 3. Replaying the accepted entries reproduces every balance, and the oracle agrees.
                     Map<AccountId, Long> replayed = new HashMap<>();
-                    accepted.forEach(e -> replayed.merge(e.account(), e.side().signed(e.amount().amount()), Math::addExact));
+                    accepted.forEach(e -> replayed.merge(
+                            e.account(), e.side().signed(e.amount().amount()), Math::addExact));
                     for (int i = 0; i < ids.size(); i++) {
                         AccountId id = ids.get(i);
                         AccountBalance balance = balances.get(id);
@@ -96,7 +98,9 @@ class PostingRulesPropertyTest {
                         long entriesOnAccount = accepted.stream()
                                 .filter(e -> e.account().equals(id))
                                 .count();
-                        assertThat(balance.version()).as("one version step per entry").isEqualTo(entriesOnAccount);
+                        assertThat(balance.version())
+                                .as("one version step per entry")
+                                .isEqualTo(entriesOnAccount);
                     }
                 });
     }

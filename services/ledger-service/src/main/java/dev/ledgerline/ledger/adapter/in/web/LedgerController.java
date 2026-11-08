@@ -56,7 +56,8 @@ class LedgerController {
         Account account =
                 ledger.openAccount(tenantId, request.type(), CurrencyCode.of(request.currency()), request.holderRef());
         AccountResponse body = AccountResponse.of(ledger.account(tenantId, account.id()));
-        return ResponseEntity.created(URI.create("/v1/accounts/" + account.id())).body(body);
+        return ResponseEntity.created(URI.create("/v1/accounts/" + account.id()))
+                .body(body);
     }
 
     @GetMapping("/accounts/{accountId}")
@@ -92,7 +93,8 @@ class LedgerController {
 
     @PostMapping("/transfers")
     @ResponseStatus(HttpStatus.CREATED)
-    TransactionResponse transfer(@RequestHeader(TENANT_HEADER) UUID tenant, @Valid @RequestBody TransferRequest request) {
+    TransactionResponse transfer(
+            @RequestHeader(TENANT_HEADER) UUID tenant, @Valid @RequestBody TransferRequest request) {
         return TransactionResponse.of(ledger.transfer(
                 new TenantId(tenant),
                 new AccountId(request.fromAccountId()),

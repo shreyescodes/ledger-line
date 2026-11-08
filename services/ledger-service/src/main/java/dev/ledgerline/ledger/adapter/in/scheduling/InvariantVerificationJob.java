@@ -54,9 +54,10 @@ class InvariantVerificationJob {
     @Scheduled(fixedDelayString = "${ledger.verifier.interval:PT1M}", initialDelayString = "PT10S")
     void verify() {
         InvariantReport report = verifier.verifyAll();
-        report.violations().forEach((check, count) -> violations
-                .computeIfAbsent(check, name -> new AtomicLong())
-                .set(count));
+        report.violations()
+                .forEach((check, count) -> violations
+                        .computeIfAbsent(check, name -> new AtomicLong())
+                        .set(count));
         lastVerifiedEpochSecond.set(report.checkedAt().getEpochSecond());
         if (!report.ok()) {
             LOG.error("Ledger invariants violated: {}", report.violations());

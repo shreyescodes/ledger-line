@@ -83,7 +83,9 @@ class LedgerSchemaIntegrationTest {
                 .hasStackTraceContaining("permission denied");
         assertThatThrownBy(() -> app.update("DELETE FROM entry WHERE id = ?", entry))
                 .hasStackTraceContaining("permission denied");
-        assertThatThrownBy(() -> app.update("DELETE FROM ledger_transaction WHERE id = ?", posted.id().value()))
+        assertThatThrownBy(() -> app.update(
+                        "DELETE FROM ledger_transaction WHERE id = ?",
+                        posted.id().value()))
                 .hasStackTraceContaining("permission denied");
     }
 
@@ -96,8 +98,7 @@ class LedgerSchemaIntegrationTest {
                 .hasStackTraceContaining("append-only");
         assertThatThrownBy(() -> owner.update("DELETE FROM entry WHERE id = ?", entry))
                 .hasStackTraceContaining("append-only");
-        assertThatThrownBy(() -> owner.execute("TRUNCATE entry"))
-                .hasStackTraceContaining("append-only");
+        assertThatThrownBy(() -> owner.execute("TRUNCATE entry")).hasStackTraceContaining("append-only");
     }
 
     @Test
@@ -114,14 +115,16 @@ class LedgerSchemaIntegrationTest {
     void theDatabaseItselfRefusesAnOverdraft() {
         // A wallet is credit-normal: a positive raw (debit) balance would mean Acme is owed money.
         assertThatThrownBy(() -> app.update(
-                        "UPDATE account_balance SET raw_balance = 1 WHERE account_id = ?", alice.id().value()))
+                        "UPDATE account_balance SET raw_balance = 1 WHERE account_id = ?",
+                        alice.id().value()))
                 .hasStackTraceContaining("balance_not_overdrawn");
     }
 
     @Test
     void theAppRoleCanNotChangeAnAccountsFlags() {
         assertThatThrownBy(() -> app.update(
-                        "UPDATE account_balance SET non_negative = false WHERE account_id = ?", alice.id().value()))
+                        "UPDATE account_balance SET non_negative = false WHERE account_id = ?",
+                        alice.id().value()))
                 .hasStackTraceContaining("permission denied");
     }
 
@@ -130,7 +133,8 @@ class LedgerSchemaIntegrationTest {
         PostedTransaction posted = ledger.post(books.transfer(alice, bob, 500));
 
         assertThat(posted.entries()).hasSize(2);
-        assertThat(ledger.account(books.tenant, bob.id()).balance().ledger().amount()).isEqualTo(500);
+        assertThat(ledger.account(books.tenant, bob.id()).balance().ledger().amount())
+                .isEqualTo(500);
     }
 
     private void inOneTransaction(Runnable work) {

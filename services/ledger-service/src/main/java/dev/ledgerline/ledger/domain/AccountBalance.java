@@ -33,6 +33,11 @@ public record AccountBalance(
     /** Applies one entry and returns the new balance; its version is the entry's sequence number. */
     public AccountBalance apply(Side side, long amount) {
         return new AccountBalance(
-                accountId, tenantId, type, currency, Math.addExact(raw, side.signed(amount)), Math.addExact(version, 1));
+                accountId,
+                tenantId,
+                type,
+                currency,
+                Math.addExact(raw, side.signed(amount)),
+                Math.addExact(version, 1));
     }
 }

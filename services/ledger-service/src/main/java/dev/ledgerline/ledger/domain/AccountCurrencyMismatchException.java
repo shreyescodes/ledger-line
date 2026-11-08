@@ -9,7 +9,8 @@ public final class AccountCurrencyMismatchException extends LedgerException {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public AccountCurrencyMismatchException(AccountId account, CurrencyCode accountCurrency, CurrencyCode entryCurrency) {
+    public AccountCurrencyMismatchException(
+            AccountId account, CurrencyCode accountCurrency, CurrencyCode entryCurrency) {
         super("account " + account + " holds " + accountCurrency + " but the entry is in " + entryCurrency);
     }
 }

@@ -19,7 +19,9 @@ class TimeOrderedIdGeneratorTest {
         UUID id = new TimeOrderedIdGenerator(Clock.fixed(NOW, ZoneOffset.UTC)).next();
 
         assertThat(id.version()).isEqualTo(7);
-        assertThat(id.getMostSignificantBits() >>> 16).as("48-bit millisecond timestamp").isEqualTo(NOW.toEpochMilli());
+        assertThat(id.getMostSignificantBits() >>> 16)
+                .as("48-bit millisecond timestamp")
+                .isEqualTo(NOW.toEpochMilli());
     }
 
     @Test
@@ -34,7 +36,9 @@ class TimeOrderedIdGeneratorTest {
         List<UUID> sorted = created.stream()
                 .sorted((a, b) -> {
                     int high = Long.compareUnsigned(a.getMostSignificantBits(), b.getMostSignificantBits());
-                    return high != 0 ? high : Long.compareUnsigned(a.getLeastSignificantBits(), b.getLeastSignificantBits());
+                    return high != 0
+                            ? high
+                            : Long.compareUnsigned(a.getLeastSignificantBits(), b.getLeastSignificantBits());
                 })
                 .toList();
         assertThat(sorted).containsExactlyElementsOf(created);

@@ -106,8 +106,8 @@ final class PostingScenarios {
                     new Leg(second, side.opposite(), amount, currency),
                     new Leg(third, side.opposite(), extra, currency))));
         }
-        return Optional.of(new Op(List.of(
-                new Leg(first, side, amount, currency), new Leg(second, side.opposite(), amount, currency))));
+        return Optional.of(new Op(
+                List.of(new Leg(first, side, amount, currency), new Leg(second, side.opposite(), amount, currency))));
     }
 
     private static int pickOther(SplittableRandom random, List<Integer> candidates, int... taken) {

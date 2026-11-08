@@ -90,14 +90,19 @@ class LedgerPropertiesIntegrationTest {
 
                     // Stored balances equal the oracle's, and no non-negative account is below zero.
                     for (int i = 0; i < accounts.size(); i++) {
-                        var balance = ledger.account(books.tenant, accounts.get(i).id()).balance();
-                        assertThat(balance.raw()).as("raw balance of account %d", i).isEqualTo(model.raw[i]);
+                        var balance = ledger.account(
+                                        books.tenant, accounts.get(i).id())
+                                .balance();
+                        assertThat(balance.raw())
+                                .as("raw balance of account %d", i)
+                                .isEqualTo(model.raw[i]);
                         if (balance.type().nonNegative()) {
                             assertThat(balance.ledger().amount()).isNotNegative();
                         }
                     }
                     // Replaying the stored entries reproduces the stored balances.
-                    Map<UUID, Long> replayed = jdbc.sql("""
+                    Map<UUID, Long> replayed = jdbc
+                            .sql("""
                                     SELECT account_id, sum(CASE side WHEN 'DEBIT' THEN amount ELSE -amount END) AS raw
                                     FROM entry WHERE tenant_id = :tenant GROUP BY account_id
                                     """)
@@ -118,7 +123,9 @@ class LedgerPropertiesIntegrationTest {
                     assertThat(entries).as("refused postings leave no trace").isEqualTo((long) model.postedLegs);
                     // The verifier's checks, including "the books sum to zero per currency".
                     InvariantReport report = verifier.verify(books.tenant);
-                    assertThat(report.ok()).as("invariants: %s", report.violations()).isTrue();
+                    assertThat(report.ok())
+                            .as("invariants: %s", report.violations())
+                            .isTrue();
                 });
     }
 }

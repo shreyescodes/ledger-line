@@ -40,13 +40,18 @@ class PostingRulesTest {
                 fees, balance(fees, AccountType.FEE_REVENUE, 0, 0));
 
         PostingPlan plan = PostingRules.plan(
-                draft(EntryDraft.debit(alice, inr(40_000)), EntryDraft.credit(chai, inr(39_200)), EntryDraft.credit(fees, inr(800))),
+                draft(
+                        EntryDraft.debit(alice, inr(40_000)),
+                        EntryDraft.credit(chai, inr(39_200)),
+                        EntryDraft.credit(fees, inr(800))),
                 balances);
 
         assertThat(plan.newBalances().get(alice).ledger()).isEqualTo(inr(35_000));
         assertThat(plan.newBalances().get(chai).ledger()).isEqualTo(inr(39_200));
         assertThat(plan.newBalances().get(fees).ledger()).isEqualTo(inr(800));
-        assertThat(plan.entries()).extracting(PostingPlan.PlannedEntry::accountSeq).containsExactly(4L, 1L, 1L);
+        assertThat(plan.entries())
+                .extracting(PostingPlan.PlannedEntry::accountSeq)
+                .containsExactly(4L, 1L, 1L);
     }
 
     @Test
@@ -79,7 +84,8 @@ class PostingRulesTest {
                 chai, balance(chai, AccountType.MERCHANT, 0, 0));
         Money usd = Money.of(10, "USD");
 
-        assertThatThrownBy(() -> PostingRules.plan(draft(EntryDraft.debit(alice, usd), EntryDraft.credit(chai, usd)), balances))
+        assertThatThrownBy(() ->
+                        PostingRules.plan(draft(EntryDraft.debit(alice, usd), EntryDraft.credit(chai, usd)), balances))
                 .isInstanceOf(AccountCurrencyMismatchException.class);
         AccountId stranger = id();
         assertThatThrownBy(() -> PostingRules.plan(
@@ -87,8 +93,11 @@ class PostingRulesTest {
                 .isInstanceOf(UnknownAccountException.class);
         TenantId other = new TenantId(UUID.randomUUID());
         assertThatThrownBy(() -> PostingRules.plan(
-                        new TransactionDraft(other, TransactionType.TRANSFER, null, List.of(
-                                EntryDraft.debit(alice, inr(10)), EntryDraft.credit(chai, inr(10)))),
+                        new TransactionDraft(
+                                other,
+                                TransactionType.TRANSFER,
+                                null,
+                                List.of(EntryDraft.debit(alice, inr(10)), EntryDraft.credit(chai, inr(10)))),
                         balances))
                 .as("another tenant's accounts look like they don't exist")
                 .isInstanceOf(UnknownAccountException.class);
@@ -104,11 +113,11 @@ class PostingRulesTest {
                 .hasMessageContaining("differ by 1");
         assertThatThrownBy(() -> EntryDraft.debit(alice, inr(0))).isInstanceOf(InvalidTransactionException.class);
         assertThat(draft(
-                        EntryDraft.debit(alice, inr(10)),
-                        EntryDraft.credit(chai, inr(10)),
-                        EntryDraft.debit(alice, Money.of(5, "USD")),
-                        EntryDraft.credit(chai, Money.of(5, "USD")))
-                .entries())
+                                EntryDraft.debit(alice, inr(10)),
+                                EntryDraft.credit(chai, inr(10)),
+                                EntryDraft.debit(alice, Money.of(5, "USD")),
+                                EntryDraft.credit(chai, Money.of(5, "USD")))
+                        .entries())
                 .as("each currency balances on its own")
                 .hasSize(4);
     }

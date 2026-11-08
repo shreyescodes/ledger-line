@@ -131,7 +131,9 @@ class PostingSql {
         Timestamp updatedAt = Timestamp.from(identity.recordedAt());
         List<Object[]> rows = new ArrayList<>();
         for (AccountBalance balance : plan.newBalances().values()) {
-            rows.add(new Object[] {balance.raw(), balance.version(), updatedAt, balance.accountId().value()});
+            rows.add(new Object[] {
+                balance.raw(), balance.version(), updatedAt, balance.accountId().value()
+            });
         }
         template.batchUpdate(
                 "UPDATE account_balance SET raw_balance = ?, version = ?, updated_at = ? WHERE account_id = ?", rows);

@@ -29,7 +29,10 @@ class SerializablePostingStrategy implements PostingStrategy {
     private final ConcurrencyRetry retry;
 
     SerializablePostingStrategy(
-            PostingSql sql, PlatformTransactionManager transactionManager, PostingOptions options, MeterRegistry meters) {
+            PostingSql sql,
+            PlatformTransactionManager transactionManager,
+            PostingOptions options,
+            MeterRegistry meters) {
         this.sql = sql;
         this.transactions = new TransactionTemplate(transactionManager);
         this.transactions.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);

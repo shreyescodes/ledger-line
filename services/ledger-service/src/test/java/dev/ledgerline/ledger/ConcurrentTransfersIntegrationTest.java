@@ -105,7 +105,9 @@ class ConcurrentTransfersIntegrationTest {
         }
         start.countDown();
         pool.shutdown();
-        assertThat(pool.awaitTermination(3, TimeUnit.MINUTES)).as("all transfers finished").isTrue();
+        assertThat(pool.awaitTermination(3, TimeUnit.MINUTES))
+                .as("all transfers finished")
+                .isTrue();
 
         System.out.printf(
                 "CONCURRENCY %s: %d transfers, %d posted, %d rejected (insufficient funds), %d gave up, %.0f retries%n",
@@ -120,7 +122,8 @@ class ConcurrentTransfersIntegrationTest {
 
         long total = 0;
         for (Account wallet : wallets) {
-            long balance = ledger.account(books.tenant, wallet.id()).balance().ledger().amount();
+            long balance =
+                    ledger.account(books.tenant, wallet.id()).balance().ledger().amount();
             assertThat(balance).as("wallet %s", wallet.id()).isNotNegative();
             total += balance;
         }
@@ -130,10 +133,15 @@ class ConcurrentTransfersIntegrationTest {
                 .param("tenant", books.tenant.value())
                 .query(Long.class)
                 .single();
-        assertThat(entries).as("two entries per funding and per posted transfer").isEqualTo(2L * (ACCOUNTS + posted.get()));
+        assertThat(entries)
+                .as("two entries per funding and per posted transfer")
+                .isEqualTo(2L * (ACCOUNTS + posted.get()));
     }
 
     private double retries(PostingStrategyName name) {
-        return meters.get("ledger.posting.retries").tag("strategy", name.name()).counter().count();
+        return meters.get("ledger.posting.retries")
+                .tag("strategy", name.name())
+                .counter()
+                .count();
     }
 }

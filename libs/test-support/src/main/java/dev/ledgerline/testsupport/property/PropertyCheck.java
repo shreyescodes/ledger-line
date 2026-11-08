@@ -65,7 +65,8 @@ public final class PropertyCheck<T> {
         }
     }
 
-    private AssertionError report(Property<T> property, T original, Throwable firstFailure, long seed, int tryNumber, int count) {
+    private AssertionError report(
+            Property<T> property, T original, Throwable firstFailure, long seed, int tryNumber, int count) {
         T smallest = original;
         Throwable smallestFailure = firstFailure;
         int steps = 0;

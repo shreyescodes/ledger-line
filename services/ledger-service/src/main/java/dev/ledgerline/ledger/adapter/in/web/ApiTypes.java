@@ -86,9 +86,8 @@ final class ApiTypes {
             UUID id, TransactionType type, String reference, Instant recordedAt, List<EntryResponse> entries) {
 
         static TransactionResponse of(PostedTransaction posted) {
-            List<EntryResponse> entries = posted.entries().stream()
-                    .map(TransactionResponse::entry)
-                    .toList();
+            List<EntryResponse> entries =
+                    posted.entries().stream().map(TransactionResponse::entry).toList();
             return new TransactionResponse(
                     posted.id().value(), posted.type(), posted.reference(), posted.recordedAt(), entries);
         }

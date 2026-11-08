@@ -32,14 +32,17 @@ class BasisPointsTest {
                 .check(c -> {
                     Money amount = Money.of(c.amount(), "INR");
                     Money fee = BasisPoints.fee(amount, c.basisPoints());
-                    assertThat(fee.plus(BasisPoints.net(amount, c.basisPoints()))).isEqualTo(amount);
+                    assertThat(fee.plus(BasisPoints.net(amount, c.basisPoints())))
+                            .isEqualTo(amount);
                     assertThat(fee.amount()).isBetween(0L, c.amount());
                 });
     }
 
     @Test
     void refusesNegativeAmountsAndImpossibleRates() {
-        assertThatThrownBy(() -> BasisPoints.fee(Money.of(-1, "INR"), 200)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> BasisPoints.fee(Money.of(1, "INR"), 10_001)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> BasisPoints.fee(Money.of(-1, "INR"), 200))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> BasisPoints.fee(Money.of(1, "INR"), 10_001))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

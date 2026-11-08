@@ -52,7 +52,10 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 @RequiresDocker
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        properties = {"ledger.verifier.enabled=false", "spring.datasource.hikari.maximum-pool-size=" + PostingStrategyBenchmark.WORKERS})
+        properties = {
+            "ledger.verifier.enabled=false",
+            "spring.datasource.hikari.maximum-pool-size=" + PostingStrategyBenchmark.WORKERS
+        })
 @Import(PostgresWithAppRoleConfiguration.class)
 class PostingStrategyBenchmark {
 
@@ -170,7 +173,9 @@ class PostingStrategyBenchmark {
         double seconds = (System.nanoTime() - began) / 1e9;
 
         InvariantReport report = verifier.verify(books.tenant);
-        assertThat(report.ok()).as("invariants after %s %s: %s", strategy.name(), scenario, report.violations()).isTrue();
+        assertThat(report.ok())
+                .as("invariants after %s %s: %s", strategy.name(), scenario, report.violations())
+                .isTrue();
         assertThat(posted.get() + rejected.get() + gaveUp.get()).isEqualTo(transferCount);
 
         long[] sorted = latencies.clone();
@@ -201,8 +206,19 @@ class PostingStrategyBenchmark {
                     "{\"strategy\":\"%s\",\"scenario\":\"%s\",\"repetition\":%d,\"transfers\":%d,\"posted\":%d,"
                             + "\"rejected\":%d,\"gaveUp\":%d,\"retries\":%d,\"seconds\":%.3f,\"throughput\":%.1f,"
                             + "\"p50Ms\":%.3f,\"p95Ms\":%.3f,\"p99Ms\":%.3f,\"maxMs\":%.3f}%n",
-                    run.strategy(), run.scenario(), run.repetition(), run.transfers(), run.posted(), run.rejected(),
-                    run.gaveUp(), run.retries(), run.seconds(), run.throughput(), run.p50(), run.p95(), run.p99(),
+                    run.strategy(),
+                    run.scenario(),
+                    run.repetition(),
+                    run.transfers(),
+                    run.posted(),
+                    run.rejected(),
+                    run.gaveUp(),
+                    run.retries(),
+                    run.seconds(),
+                    run.throughput(),
+                    run.p50(),
+                    run.p95(),
+                    run.p99(),
                     run.max()));
         }
         Files.writeString(output.resolve("posting-strategies.jsonl"), lines, StandardCharsets.UTF_8);
@@ -210,18 +226,35 @@ class PostingStrategyBenchmark {
         String postgres = jdbc.sql("SELECT version()").query(String.class).single();
         StringBuilder table = new StringBuilder();
         table.append("# Posting strategy benchmark (raw output)\n\n")
-                .append(String.format(Locale.ROOT, "- Java: %s %s%n", System.getProperty("java.vendor"), System.getProperty("java.version")))
-                .append(String.format(Locale.ROOT, "- Processors visible to the JVM: %d%n", Runtime.getRuntime().availableProcessors()))
-                .append("- Postgres: ").append(postgres).append('\n')
-                .append(String.format(Locale.ROOT, "- Workers: %d threads, connection pool %d; %d transfers per run, %d runs per cell after a %d-transfer warm-up%n%n",
-                        WORKERS, WORKERS, TRANSFERS, REPETITIONS, WARMUP_TRANSFERS))
+                .append(String.format(
+                        Locale.ROOT,
+                        "- Java: %s %s%n",
+                        System.getProperty("java.vendor"),
+                        System.getProperty("java.version")))
+                .append(String.format(
+                        Locale.ROOT,
+                        "- Processors visible to the JVM: %d%n",
+                        Runtime.getRuntime().availableProcessors()))
+                .append("- Postgres: ")
+                .append(postgres)
+                .append('\n')
+                .append(String.format(
+                        Locale.ROOT,
+                        "- Workers: %d threads, connection pool %d; %d transfers per run, %d runs per cell after a %d-transfer warm-up%n%n",
+                        WORKERS,
+                        WORKERS,
+                        TRANSFERS,
+                        REPETITIONS,
+                        WARMUP_TRANSFERS))
                 .append("Median of the runs in each cell:\n\n")
-                .append("| Strategy | Scenario | Throughput (transfers/s) | p50 ms | p95 ms | p99 ms | max ms | Retries | Gave up |\n")
+                .append(
+                        "| Strategy | Scenario | Throughput (transfers/s) | p50 ms | p95 ms | p99 ms | max ms | Retries | Gave up |\n")
                 .append("|---|---|---:|---:|---:|---:|---:|---:|---:|\n");
         for (PostingStrategyName strategy : PostingStrategyName.values()) {
             for (String scenario : List.of("HOT", "SPREAD")) {
                 List<Run> cell = runs.stream()
-                        .filter(r -> r.strategy().equals(strategy.name()) && r.scenario().equals(scenario))
+                        .filter(r -> r.strategy().equals(strategy.name())
+                                && r.scenario().equals(scenario))
                         .toList();
                 if (cell.isEmpty()) {
                     continue;
@@ -229,9 +262,14 @@ class PostingStrategyBenchmark {
                 table.append(String.format(
                         Locale.ROOT,
                         "| %s | %s | %.0f | %.2f | %.2f | %.2f | %.2f | %.0f | %.0f |%n",
-                        strategy, scenario,
-                        median(cell, Run::throughput), median(cell, Run::p50), median(cell, Run::p95),
-                        median(cell, Run::p99), median(cell, Run::max), median(cell, r -> (double) r.retries()),
+                        strategy,
+                        scenario,
+                        median(cell, Run::throughput),
+                        median(cell, Run::p50),
+                        median(cell, Run::p95),
+                        median(cell, Run::p99),
+                        median(cell, Run::max),
+                        median(cell, r -> (double) r.retries()),
                         median(cell, r -> (double) r.gaveUp())));
             }
         }
@@ -240,7 +278,10 @@ class PostingStrategyBenchmark {
     }
 
     private double retries(PostingStrategyName name) {
-        return meters.get("ledger.posting.retries").tag("strategy", name.name()).counter().count();
+        return meters.get("ledger.posting.retries")
+                .tag("strategy", name.name())
+                .counter()
+                .count();
     }
 
     private static long percentile(long[] sorted, double quantile) {

@@ -35,7 +35,8 @@ class LedgerApiIntegrationTest {
 
     @Test
     void openAccountReturnsItWithAZeroBalance() {
-        ResponseEntity<JsonNode> response = post(tenant, "/v1/accounts", Map.of("type", "CUSTOMER_WALLET", "currency", "INR"));
+        ResponseEntity<JsonNode> response =
+                post(tenant, "/v1/accounts", Map.of("type", "CUSTOMER_WALLET", "currency", "INR"));
 
         assertThat(response.getStatusCode().value()).isEqualTo(201);
         assertThat(response.getHeaders().getLocation()).isNotNull();
@@ -52,8 +53,20 @@ class LedgerApiIntegrationTest {
         String bob = open("CUSTOMER_WALLET");
         fund(clearing, alice, 100_000);
 
-        ResponseEntity<JsonNode> transfer = post(tenant, "/v1/transfers", Map.of(
-                "fromAccountId", alice, "toAccountId", bob, "amount", 25_000, "currency", "INR", "reference", "p2p-1"));
+        ResponseEntity<JsonNode> transfer = post(
+                tenant,
+                "/v1/transfers",
+                Map.of(
+                        "fromAccountId",
+                        alice,
+                        "toAccountId",
+                        bob,
+                        "amount",
+                        25_000,
+                        "currency",
+                        "INR",
+                        "reference",
+                        "p2p-1"));
 
         assertThat(transfer.getStatusCode().value()).isEqualTo(201);
         assertThat(balance(alice)).isEqualTo(75_000);
@@ -76,9 +89,12 @@ class LedgerApiIntegrationTest {
         Long cursor = 0L;
         int pages = 0;
         while (cursor != null) {
-            JsonNode page = get(tenant, "/v1/accounts/" + alice + "/entries?limit=3&after=" + cursor).getBody();
+            JsonNode page = get(tenant, "/v1/accounts/" + alice + "/entries?limit=3&after=" + cursor)
+                    .getBody();
             page.get("items").forEach(item -> seen.add(item.get("accountSeq").asLong()));
-            cursor = page.get("nextCursor").isNull() ? null : page.get("nextCursor").asLong();
+            cursor = page.get("nextCursor").isNull()
+                    ? null
+                    : page.get("nextCursor").asLong();
             pages++;
         }
 
@@ -93,8 +109,10 @@ class LedgerApiIntegrationTest {
         String bob = open("CUSTOMER_WALLET");
         fund(clearing, alice, 1_000);
 
-        ResponseEntity<JsonNode> response = post(tenant, "/v1/transfers", Map.of(
-                "fromAccountId", alice, "toAccountId", bob, "amount", 1_001, "currency", "INR"));
+        ResponseEntity<JsonNode> response = post(
+                tenant,
+                "/v1/transfers",
+                Map.of("fromAccountId", alice, "toAccountId", bob, "amount", 1_001, "currency", "INR"));
 
         assertThat(response.getStatusCode().value()).isEqualTo(422);
         assertThat(response.getBody().get("type").asString()).isEqualTo("urn:ledgerline:problem:insufficient-funds");
@@ -107,11 +125,16 @@ class LedgerApiIntegrationTest {
         String alice = open("CUSTOMER_WALLET");
         String bob = open("CUSTOMER_WALLET");
 
-        ResponseEntity<JsonNode> response = post(tenant, "/v1/transactions", Map.of(
-                "type", "ADJUSTMENT",
-                "entries", List.of(
-                        Map.of("accountId", alice, "side", "DEBIT", "amount", 100, "currency", "INR"),
-                        Map.of("accountId", bob, "side", "CREDIT", "amount", 99, "currency", "INR"))));
+        ResponseEntity<JsonNode> response = post(
+                tenant,
+                "/v1/transactions",
+                Map.of(
+                        "type",
+                        "ADJUSTMENT",
+                        "entries",
+                        List.of(
+                                Map.of("accountId", alice, "side", "DEBIT", "amount", 100, "currency", "INR"),
+                                Map.of("accountId", bob, "side", "CREDIT", "amount", 99, "currency", "INR"))));
 
         assertThat(response.getStatusCode().value()).isEqualTo(422);
         assertThat(response.getBody().get("type").asString()).isEqualTo("urn:ledgerline:problem:invalid-transaction");
@@ -125,9 +148,12 @@ class LedgerApiIntegrationTest {
         fund(clearing, alice, 1_000);
         UUID intruder = UUID.randomUUID();
 
-        assertThat(get(intruder, "/v1/accounts/" + alice).getStatusCode().value()).isEqualTo(404);
-        ResponseEntity<JsonNode> transfer = post(intruder, "/v1/transfers", Map.of(
-                "fromAccountId", alice, "toAccountId", bob, "amount", 500, "currency", "INR"));
+        assertThat(get(intruder, "/v1/accounts/" + alice).getStatusCode().value())
+                .isEqualTo(404);
+        ResponseEntity<JsonNode> transfer = post(
+                intruder,
+                "/v1/transfers",
+                Map.of("fromAccountId", alice, "toAccountId", bob, "amount", 500, "currency", "INR"));
         assertThat(transfer.getStatusCode().value()).isEqualTo(404);
         assertThat(balance(alice)).isEqualTo(1_000);
     }
@@ -146,13 +172,18 @@ class LedgerApiIntegrationTest {
                 .isEqualTo(400);
         String alice = open("CUSTOMER_WALLET");
         String bob = open("CUSTOMER_WALLET");
-        assertThat(post(tenant, "/v1/transfers", Map.of(
-                                "fromAccountId", alice, "toAccountId", bob, "amount", 0, "currency", "INR"))
+        assertThat(post(
+                                tenant,
+                                "/v1/transfers",
+                                Map.of("fromAccountId", alice, "toAccountId", bob, "amount", 0, "currency", "INR"))
                         .getStatusCode()
                         .value())
                 .as("zero amount")
                 .isEqualTo(400);
-        assertThat(post(tenant, "/v1/accounts", Map.of("type", "CUSTOMER_WALLET", "currency", "INR", "holderRef", "Alice Smith"))
+        assertThat(post(
+                                tenant,
+                                "/v1/accounts",
+                                Map.of("type", "CUSTOMER_WALLET", "currency", "INR", "holderRef", "Alice Smith"))
                         .getStatusCode()
                         .value())
                 .as("holder refs are opaque ids, not names")
@@ -183,16 +214,24 @@ class LedgerApiIntegrationTest {
     }
 
     private void fund(String clearing, String account, long amount) {
-        ResponseEntity<JsonNode> response = post(tenant, "/v1/transactions", Map.of(
-                "type", "TOP_UP",
-                "entries", List.of(
-                        Map.of("accountId", clearing, "side", "DEBIT", "amount", amount, "currency", "INR"),
-                        Map.of("accountId", account, "side", "CREDIT", "amount", amount, "currency", "INR"))));
+        ResponseEntity<JsonNode> response = post(
+                tenant,
+                "/v1/transactions",
+                Map.of(
+                        "type",
+                        "TOP_UP",
+                        "entries",
+                        List.of(
+                                Map.of("accountId", clearing, "side", "DEBIT", "amount", amount, "currency", "INR"),
+                                Map.of("accountId", account, "side", "CREDIT", "amount", amount, "currency", "INR"))));
         assertThat(response.getStatusCode().value()).isEqualTo(201);
     }
 
     private long balance(String account) {
-        return get(tenant, "/v1/accounts/" + account).getBody().get("ledgerBalance").asLong();
+        return get(tenant, "/v1/accounts/" + account)
+                .getBody()
+                .get("ledgerBalance")
+                .asLong();
     }
 
     private ResponseEntity<JsonNode> post(UUID tenantId, String path, Object body) {
