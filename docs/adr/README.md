@@ -15,3 +15,7 @@ New ADRs start from [template.md](template.md).
 | [0008](0008-service-structure-and-architecture-rules.md) | Hexagonal service structure enforced by ArchUnit | Accepted | 1 |
 | [0009](0009-database-per-service.md) | One database per service, migrated by its owner | Accepted | 1 |
 | [0010](0010-ci-pipeline-and-supply-chain.md) | CI pipeline and supply-chain checks | Accepted | 1 |
+| [0011](0011-time-ordered-uuidv7-ids.md) | Time-ordered UUIDv7 ids, made by the application | Proposed | 2 |
+| [0012](0012-plain-sql-with-jdbcclient-on-the-hot-path.md) | Plain SQL with Spring's JdbcClient for the ledger | Proposed | 2 |
+| [0013](0013-ledger-schema-and-database-enforced-invariants.md) | Ledger schema, and invariants the database enforces itself | Proposed | 2 |
+| [0014](0014-ordered-row-locks-prevent-overdrafts.md) | Ordered row locks prevent overdrafts | Proposed | 2 |
