@@ -9,6 +9,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /** Starts the service against a real Postgres in Docker, then checks Flyway and the endpoints. */
 @LedgerIntegrationTest
@@ -17,6 +19,9 @@ class LedgerServiceIntegrationTest extends ActuatorContractTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private PostgreSQLContainer postgres;
+
     @Override
     protected Set<String> readinessComponents() {
         return Set.of("readinessState", "db");
@@ -24,7 +29,10 @@ class LedgerServiceIntegrationTest extends ActuatorContractTest {
 
     @Test
     void flywayAppliedEveryMigration() {
-        List<String> applied = jdbc.queryForList(
+        // The app role can't even read Flyway's history table, so ask as the owner.
+        JdbcTemplate owner = new JdbcTemplate(
+                new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()));
+        List<String> applied = owner.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class);
 
         assertThat(applied).containsExactly("1", "2", "3", "4");
