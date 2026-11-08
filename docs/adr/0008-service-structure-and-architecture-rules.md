@@ -1,6 +1,6 @@
 # ADR-0008: Hexagonal service structure enforced by ArchUnit
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 1
 

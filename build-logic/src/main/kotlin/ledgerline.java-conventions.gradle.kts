@@ -37,6 +37,10 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // Lets a property-test failure be replayed: ./gradlew test -Dproperty.seed=N -Dproperty.tries=1
+    listOf("property.seed", "property.tries").forEach { name ->
+        providers.systemProperty(name).orNull?.let { systemProperty(name, it) }
+    }
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL

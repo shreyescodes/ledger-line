@@ -1,6 +1,6 @@
 # ADR-0009: One database per service, migrated by its owner
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 1
 

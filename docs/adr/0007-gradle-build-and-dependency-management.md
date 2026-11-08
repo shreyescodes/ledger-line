@@ -1,6 +1,6 @@
 # ADR-0007: Gradle multi-module build with convention plugins and locked dependencies
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-06
 - **Stage:** 1
 

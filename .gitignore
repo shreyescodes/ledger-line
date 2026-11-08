@@ -11,7 +11,7 @@ Thumbs.db
 # Java / Gradle
 .gradle/
 build/
-out/
+/out/
 *.class
 
 # Node / frontend
